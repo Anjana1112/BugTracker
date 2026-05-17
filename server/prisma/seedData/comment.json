@@ -1,0 +1,177 @@
+[
+  {
+    "text": "We need to update this design to include new specifications.",
+    "ticketId": 1,
+    "userId": 2,
+    "createdAt": "2025-01-13T12:00:00Z",
+    "attachmentURLs": ["i1.jpg"]
+  },
+  {
+    "text": "Can we meet to discuss the navigation algorithm updates?",
+    "ticketId": 2,
+    "userId": 4,
+    "createdAt": "2025-01-13T12:05:00Z",
+    "attachmentURLs": ["i2.jpg"]
+  },
+  {
+    "text": "This energy solution looks promising, but needs more research.",
+    "ticketId": 3,
+    "userId": 6,
+    "createdAt": "2025-01-13T12:10:00Z",
+    "attachmentURLs": ["i3.jpg"]
+  },
+  {
+    "text": "Let's revise the software development workflow to include agile methodologies.",
+    "ticketId": 4,
+    "userId": 8,
+    "createdAt": "2025-01-13T12:15:00Z",
+    "attachmentURLs": ["i4.jpg"]
+  },
+  {
+    "text": "We should consider newer AI models for better accuracy.",
+    "ticketId": 5,
+    "userId": 10,
+    "createdAt": "2025-01-13T12:20:00Z",
+    "attachmentURLs": ["i5.jpg"]
+  },
+  {
+    "text": "Product testing needs to be more rigorous.",
+    "ticketId": 6,
+    "userId": 12,
+    "createdAt": "2025-01-13T12:25:00Z",
+    "attachmentURLs": ["i6.jpg"]
+  },
+  {
+    "text": "Optimization algorithms are not yet efficient.",
+    "ticketId": 7,
+    "userId": 14,
+    "createdAt": "2025-01-13T12:30:00Z",
+    "attachmentURLs": ["i7.jpg"]
+  },
+  {
+    "text": "Database overhaul could impact current operations negatively.",
+    "ticketId": 8,
+    "userId": 16,
+    "createdAt": "2025-01-13T12:35:00Z",
+    "attachmentURLs": ["i8.jpg"]
+  },
+  {
+    "text": "Infrastructure upgrades must be done during low traffic hours.",
+    "ticketId": 9,
+    "userId": 18,
+    "createdAt": "2025-01-13T12:40:00Z",
+    "attachmentURLs": ["i9.jpg"]
+  },
+  {
+    "text": "Security measures need to be enhanced to prevent data breaches.",
+    "ticketId": 10,
+    "userId": 20,
+    "createdAt": "2025-01-13T12:45:00Z",
+    "attachmentURLs": ["i10.jpg"]
+  },
+  {
+    "text": "Consider using more robust training datasets for AI.",
+    "ticketId": 11,
+    "userId": 1,
+    "createdAt": "2025-01-13T12:50:00Z",
+    "attachmentURLs": []
+  },
+  {
+    "text": "Server security update meeting scheduled for next week.",
+    "ticketId": 12,
+    "userId": 2,
+    "createdAt": "2025-01-13T12:55:00Z",
+    "attachmentURLs": []
+  },
+  {
+    "text": "UX redesign has been well received in initial user tests.",
+    "ticketId": 13,
+    "userId": 3,
+    "createdAt": "2025-01-13T13:00:00Z",
+    "attachmentURLs": []
+  },
+  {
+    "text": "Data analytics implementation needs to account for real-time processing delays.",
+    "ticketId": 14,
+    "userId": 4,
+    "createdAt": "2025-01-13T13:05:00Z",
+    "attachmentURLs": []
+  },
+  {
+    "text": "Encryption project needs to align with international security standards.",
+    "ticketId": 15,
+    "userId": 5,
+    "createdAt": "2025-01-13T13:10:00Z",
+    "attachmentURLs": []
+  },
+  {
+    "text": "Review cloud storage optimization strategies in Q3 meeting.",
+    "ticketId": 16,
+    "userId": 6,
+    "createdAt": "2025-01-13T13:15:00Z",
+    "attachmentURLs": []
+  },
+  {
+    "text": "Hardware compatibility tests to include newer device models.",
+    "ticketId": 17,
+    "userId": 7,
+    "createdAt": "2025-01-13T13:20:00Z",
+    "attachmentURLs": []
+  },
+  {
+    "text": "Visualization tools to support both 2D and 3D data representations.",
+    "ticketId": 18,
+    "userId": 8,
+    "createdAt": "2025-01-13T13:25:00Z",
+    "attachmentURLs": []
+  },
+  {
+    "text": "IoT device prototypes to undergo extensive field testing.",
+    "ticketId": 19,
+    "userId": 9,
+    "createdAt": "2025-01-13T13:30:00Z",
+    "attachmentURLs": []
+  },
+  {
+    "text": "Legacy system upgrade to start with backend databases.",
+    "ticketId": 20,
+    "userId": 10,
+    "createdAt": "2025-01-13T13:35:00Z",
+    "attachmentURLs": []
+  },
+  {
+    "text": "Network security framework should prioritize threat detection improvements.",
+    "ticketId": 21,
+    "userId": 1,
+    "createdAt": "2025-01-13T13:40:00Z",
+    "attachmentURLs": []
+  },
+  {
+    "text": "Application deployment strategies to include Docker integration.",
+    "ticketId": 22,
+    "userId": 2,
+    "createdAt": "2025-01-13T13:45:00Z",
+    "attachmentURLs": []
+  },
+  {
+    "text": "Market analysis should cover competitive product landscapes.",
+    "ticketId": 23,
+    "userId": 3,
+    "createdAt": "2025-01-13T13:50:00Z",
+    "attachmentURLs": []
+  },
+  {
+    "text": "Feedback mechanisms to utilize adaptive questioning techniques.",
+    "ticketId": 24,
+    "userId": 4,
+    "createdAt": "2025-01-13T13:55:00Z",
+    "attachmentURLs": []
+  },
+  {
+    "text": "API integration must ensure data privacy compliance.",
+    "ticketId": 25,
+    "userId": 5,
+    "createdAt": "2025-01-13T14:00:00Z",
+    "attachmentURLs": []
+  }
+]

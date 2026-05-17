@@ -1,0 +1,121 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+    ADMIN
+    DEVELOPER
+}
+
+enum TicketStatus {
+    OPEN
+    IN_PROGRESS
+    CLOSED
+}
+
+enum TicketPriority {
+    LOW
+    MEDIUM
+    HIGH
+}
+
+enum TicketType {
+    BUG
+    FEATURE
+    TASK
+}
+
+model User {
+    userId             Int                @id @default(autoincrement())
+    cognitoId          String             @unique
+    username           String             @unique
+    email              String             @unique
+    profilePictureUrl  String?
+    role               Role               @default(DEVELOPER)
+
+    authoredTickets    Ticket[]           @relation("TicketAuthor")
+    ticketAssignments  TicketAssignment[]
+    comments           Comment[]
+    projects           Project[]          @relation("ProjectMembers")
+
+    createdAt          DateTime           @default(now())
+    updatedAt          DateTime           @updatedAt
+}
+
+model Project {
+    projectId          Int                @id @default(autoincrement())
+    name               String
+    description        String?
+    startDate          DateTime?
+    endDate            DateTime?
+
+    tickets            Ticket[]
+    teamMembers        User[]             @relation("ProjectMembers")
+
+    createdAt          DateTime           @default(now())
+    updatedAt          DateTime           @updatedAt
+}
+
+model Ticket {
+    ticketId           Int                @id @default(autoincrement())
+    title              String
+    description        String?
+    type               TicketType
+    status             TicketStatus
+    priority           TicketPriority
+    startDate          DateTime?
+    dueDate            DateTime?
+    createdAt          DateTime           @default(now())
+    updatedAt          DateTime           @updatedAt
+
+    projectId          Int
+    authorUserId       Int
+
+    project            Project            @relation(fields: [projectId], references: [projectId], onDelete: Cascade)
+    author             User               @relation("TicketAuthor", fields: [authorUserId], references: [userId])
+
+    ticketAssignments  TicketAssignment[]
+    comments           Comment[]
+
+    @@index([projectId])
+    @@index([authorUserId])
+}
+
+model TicketAssignment {
+    id                 Int                @id @default(autoincrement())
+    userId             Int
+    ticketId           Int
+    assignedAt         DateTime           @default(now())
+
+    user               User               @relation(fields: [userId], references: [userId], onDelete: Cascade)
+    ticket             Ticket             @relation(fields: [ticketId], references: [ticketId], onDelete: Cascade)
+
+    @@unique([userId, ticketId])
+    @@index([userId])
+    @@index([ticketId])
+}
+
+model Comment {
+    commentId          Int                @id @default(autoincrement())
+    text               String
+    ticketId           Int
+    userId             Int
+    attachmentURLs     String[]
+    createdAt          DateTime           @default(now())
+
+    ticket             Ticket             @relation(fields: [ticketId], references: [ticketId], onDelete: Cascade)
+    author             User               @relation(fields: [userId], references: [userId])
+
+    @@index([ticketId])
+    @@index([userId])
+}
