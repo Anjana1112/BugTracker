@@ -51,6 +51,12 @@ model User {
     password           String?
     profilePictureUrl  String?
     role               Role               @default(DEVELOPER)
+    // Set by DELETE /users/me to mark an account as deactivated. The
+    // reliable signal requireAuth uses to reject old tokens for
+    // deleted/anonymized users — deliberately NOT password === null, since
+    // GitHub-only accounts legitimately have no password and must still be
+    // able to authenticate.
+    deletedAt          DateTime?
 
     authoredTickets    Ticket[]           @relation("TicketAuthor")
     ticketAssignments  TicketAssignment[]

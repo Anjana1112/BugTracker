@@ -51,6 +51,20 @@ describe("POST /api/login", () => {
         const res = await request(app).post("/api/login").send({ email: "x@example.com" });
         expect(res.status).toBe(400);
     });
+
+    // deletedAt is checked explicitly, independent of the password being
+    // null — this covers a user with a real password hash but deletedAt
+    // set, a case deleteMyAccount itself never produces but the check
+    // must not depend on that coincidence.
+    it("rejects login for a deletedAt account even with a valid password hash", async () => {
+        const user = await createUser({ password: "still-set", deletedAt: new Date() });
+
+        const res = await request(app)
+            .post("/api/login")
+            .send({ email: user.email, password: user.plainPassword });
+
+        expect(res.status).toBe(401);
+    });
 });
 
 describe("requireAuth middleware", () => {

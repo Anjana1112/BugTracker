@@ -19,6 +19,14 @@ describe("GET /users", () => {
         expect(res.body.some((u: any) => u.userId === user.userId)).toBe(true);
         expect(res.body[0].password).toBeUndefined();
     });
+
+    // requireAuth must not treat "no password" (GitHub-only accounts) as
+    // "deactivated" — only deletedAt marks an account as deactivated.
+    it("authenticates a no-password account that hasn't been deleted", async () => {
+        const user = await createUser({ password: null });
+        const res = await request(app).get("/users").set(authHeader(user));
+        expect(res.status).toBe(200);
+    });
 });
 
 describe("GET /users/:userId", () => {
@@ -260,21 +268,17 @@ describe("DELETE /users/me", () => {
         expect(res.status).toBe(400);
     });
 
-    // Current behavior — not a deliberate design choice about
-    // deleteMyAccount itself, see the summary: the requireAuth middleware
-    // fix (needed for the deleted-user-token requirement in auth.test.ts)
-    // rejects ANY no-password account at the door, since "no password" is
-    // the same signal used to detect a self-deleted/anonymized account.
-    // That means a genuine GitHub-only account can no longer reach this
-    // controller's own (now-unreachable) no-password branch at all — the
-    // request 401s in middleware first.
-    it("[current behavior] 401s before reaching the controller for a no-password account", async () => {
+    // A GitHub-only account (password: null, not yet deletedAt) is
+    // distinguishable from a deactivated one via deletedAt, not password —
+    // so it reaches the controller normally and, since there's no password
+    // to verify, can self-delete without one.
+    it("lets a no-password (e.g. GitHub-only) account delete itself without a password", async () => {
         const user = await createUser({ password: null });
         const res = await request(app)
             .delete("/users/me")
             .set(authHeader(user))
             .send({});
-        expect(res.status).toBe(401);
+        expect(res.status).toBe(200);
     });
 });
 

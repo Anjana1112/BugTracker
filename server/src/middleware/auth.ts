@@ -33,14 +33,15 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
         // A valid signature only proves the token was once issued for this
         // userId — it says nothing about whether that account still exists
         // or is still active. Re-check the DB so a hard-deleted user, or a
-        // self-deleted/anonymized one (password cleared — the one reliable
-        // signal, since every real login requires a password to be set),
-        // can't keep using an old token until it naturally expires.
+        // self-deleted/anonymized one (deletedAt set by DELETE /users/me),
+        // can't keep using an old token until it naturally expires. Not
+        // password === null: GitHub-only accounts legitimately have no
+        // password and must still be able to authenticate.
         const user = await prisma.user.findUnique({
             where: { userId: payload.userId },
-            select: { password: true },
+            select: { deletedAt: true },
         });
-        if (!user || !user.password) {
+        if (!user || user.deletedAt !== null) {
             res.status(401).json({ message: "Invalid or expired token" });
             return;
         }

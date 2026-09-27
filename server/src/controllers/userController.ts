@@ -234,6 +234,7 @@ export const deleteMyAccount = async (req: Request, res: Response): Promise<void
                 password: null,
                 profilePictureUrl: null,
                 role: "DEVELOPER",
+                deletedAt: new Date(),
             },
         })
 

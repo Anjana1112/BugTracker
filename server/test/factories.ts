@@ -15,6 +15,7 @@ export async function createUser(
         password: string | null;
         role: "ADMIN" | "DEVELOPER";
         profilePictureUrl: string | null;
+        deletedAt: Date | null;
     }> = {}
 ) {
     const tag = unique("user");
@@ -28,6 +29,7 @@ export async function createUser(
             password: plainPassword ? bcrypt.hashSync(plainPassword, BCRYPT_COST) : null,
             role: overrides.role ?? "DEVELOPER",
             profilePictureUrl: overrides.profilePictureUrl ?? null,
+            deletedAt: overrides.deletedAt ?? null,
         },
     });
 

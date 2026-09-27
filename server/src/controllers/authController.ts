@@ -26,7 +26,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     try {
         const user = await prisma.user.findUnique({ where: { email } });
 
-        if (!user || !user.password) {
+        // deletedAt is the authoritative "deactivated" marker (see
+        // requireAuth) — checked explicitly here rather than relying on the
+        // coincidence that deleteMyAccount also nulls the password.
+        if (!user || !user.password || user.deletedAt) {
             res.status(401).json({ message: "Invalid email or password" });
             return;
         }
