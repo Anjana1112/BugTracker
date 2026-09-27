@@ -13,9 +13,12 @@ export const globalSearch = async (req: Request, res: Response) => {
     const q = (req.query.q as string)?.trim();
     if (!q || q.length < 2) return res.json({ tickets: [], projects: [], users: [] });
 
+    const userId = req.user!.userId;
+
     const [tickets, projects, users] = await Promise.all([
         prisma.ticket.findMany({
         where: {
+            project: { teamMembers: { some: { userId } } },
             OR: [
             { title: { contains: q, mode: "insensitive" } },
             { description: { contains: q, mode: "insensitive" } },
@@ -26,6 +29,7 @@ export const globalSearch = async (req: Request, res: Response) => {
         }),
         prisma.project.findMany({
         where: {
+            teamMembers: { some: { userId } },
             OR: [
             { name: { contains: q, mode: "insensitive" } },
             { description: { contains: q, mode: "insensitive" } },

@@ -2,6 +2,16 @@ import type { Request, Response } from "express";
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../generated/prisma/client.js";
+import {
+    requireNonEmptyString,
+    parseOptionalDate,
+    assertProjectDateOrder,
+    assertUsersExist,
+    assertNotLastProjectMember,
+} from "../lib/validation.js";
+import { handleControllerError } from "../lib/errorHandler.js";
+import { diffFields, buildMemberActivityInputs } from "../lib/activity.js";
+import { projectMemberWhere } from "../lib/access.js";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) throw new Error("DATABASE_URL is missing");
@@ -13,6 +23,7 @@ const prisma = new PrismaClient({ adapter });
 export const getProjects = async (req: Request, res: Response): Promise<void> =>{
     try{
         const projects = await prisma.project.findMany({
+            where: { teamMembers: { some: { userId: req.user!.userId } } },
             include: { teamMembers: {
                 select: {
                     userId: true,
@@ -37,8 +48,8 @@ export const getProject= async (req: Request, res: Response): Promise<void> =>{
             res.status(400).json({ message: "Invalid project id" })
             return
         }
-        const project = await prisma.project.findUnique({
-            where: {projectId},
+        const project = await prisma.project.findFirst({
+            where: { projectId, teamMembers: { some: { userId: req.user!.userId } } },
             include: { teamMembers: {
                 select: {
                     userId: true,
@@ -60,18 +71,32 @@ export const getProject= async (req: Request, res: Response): Promise<void> =>{
 export const createProject= async (req: Request, res: Response): Promise<void> =>{
     try{
         const { name, description, startDate, endDate, teamMembers }= req.body;
+
+        const validName = requireNonEmptyString(name, "Project name");
+        const parsedStartDate = parseOptionalDate(startDate, "Start date");
+        const parsedEndDate = parseOptionalDate(endDate, "End date");
+        assertProjectDateOrder(parsedStartDate, parsedEndDate);
+
+        const memberIds = new Set<number>(
+            Array.isArray(teamMembers) ? teamMembers.map((userId: number) => Number(userId)) : []
+        );
+        // Always include the creator so they remain a member of the project they made.
+        memberIds.add(req.user!.userId);
+
+        const existingUsers = await prisma.user.findMany({
+            where: { userId: { in: Array.from(memberIds) } },
+            select: { userId: true },
+        });
+        assertUsersExist(Array.from(memberIds), new Set(existingUsers.map((u) => u.userId)));
+
         const data: any = {
-            name, 
+            name: validName,
             description: description || null,
-            startDate: startDate ? new Date(startDate) : null,
-            endDate: endDate ? new Date(endDate) : null,
-        }
-        if (Array.isArray(teamMembers) && teamMembers.length > 0) {
-            data.teamMembers = {
-                connect: teamMembers.map((userId: number)=> ({
-                    userId: Number(userId)
-                }))
-            }
+            startDate: parsedStartDate,
+            endDate: parsedEndDate,
+            teamMembers: {
+                connect: Array.from(memberIds).map((userId) => ({ userId })),
+            },
         }
         const newProject = await prisma.project.create({
             data,
@@ -87,11 +112,7 @@ export const createProject= async (req: Request, res: Response): Promise<void> =
         });
         res.status(201).json(newProject);
     } catch (err:any){
-        if (err?.code === "P2002") {
-            res.status(409).json({ message: "Duplicate projectId (primary key collision)" });
-            return;
-        }
-        res.status(500).json({message: `error creating project: ${err.message}`})
+        handleControllerError(err, res, "error creating project");
     }
 }
 //projects/:projectId
@@ -121,16 +142,39 @@ export const editProject= async (req: Request, res: Response): Promise<void> =>{
             res.status(400).json({ message: "No fields provided to update" });
             return;
         }
-        const existing = await prisma.project.findUnique({ where: { projectId } });
+        const existing = await prisma.project.findFirst({
+            where: { projectId, ...projectMemberWhere(req.user!.userId) },
+            include: { teamMembers: { select: { userId: true } } },
+        });
         if (!existing) {
             res.status(404).json({ message: "Project not found" });
             return;
         }
+
+        const validName = name !== undefined ? requireNonEmptyString(name, "Project name") : undefined;
+        const parsedStartDate = startDate !== undefined ? parseOptionalDate(startDate, "Start date") : undefined;
+        const parsedEndDate = endDate !== undefined ? parseOptionalDate(endDate, "End date") : undefined;
+
+        // Date-order check must account for fields not present in this
+        // request (a partial update), falling back to the existing value.
+        const resolvedStartDate = parsedStartDate !== undefined ? parsedStartDate : existing.startDate;
+        const resolvedEndDate = parsedEndDate !== undefined ? parsedEndDate : existing.endDate;
+        assertProjectDateOrder(resolvedStartDate, resolvedEndDate);
+
+        if (teamMembers !== undefined && teamMembers.length > 0) {
+            const requestedIds = teamMembers.map((userId) => Number(userId));
+            const existingUsers = await prisma.user.findMany({
+                where: { userId: { in: requestedIds } },
+                select: { userId: true },
+            });
+            assertUsersExist(requestedIds, new Set(existingUsers.map((u) => u.userId)));
+        }
+
         const data: any = {
-            ...(name !== undefined ? { name } : {}),
+            ...(validName !== undefined ? { name: validName } : {}),
             ...(description !== undefined ? { description: description ?? null } : {}),
-            ...(startDate !== undefined ? { startDate: startDate ? new Date(startDate) : null } : {}),
-            ...(endDate !== undefined ? { endDate: endDate ? new Date(endDate) : null } : {}),
+            ...(parsedStartDate !== undefined ? { startDate: parsedStartDate } : {}),
+            ...(parsedEndDate !== undefined ? { endDate: parsedEndDate } : {}),
         }
         if (teamMembers!==undefined){
             data.teamMembers = {
@@ -139,7 +183,40 @@ export const editProject= async (req: Request, res: Response): Promise<void> =>{
                 }))
             }
         }
-        const updated = await prisma.project.update({
+
+        const fieldDiffs = diffFields(
+            existing,
+            {
+                name: validName !== undefined ? validName : existing.name,
+                description: description !== undefined ? (description ?? null) : existing.description,
+                startDate: resolvedStartDate,
+                endDate: resolvedEndDate,
+            },
+            ["name", "description", "startDate", "endDate"]
+        );
+        const memberActivityInputs =
+            teamMembers !== undefined
+                ? buildMemberActivityInputs(
+                    existing.teamMembers.map((m) => m.userId),
+                    teamMembers.map((userId) => Number(userId)),
+                    req.user!.userId,
+                    projectId
+                )
+                : [];
+        const activityInputs = [
+            ...fieldDiffs.map((d) => ({
+                action: "FIELD_CHANGED" as const,
+                field: d.field,
+                oldValue: d.oldValue,
+                newValue: d.newValue,
+                actorUserId: req.user!.userId,
+                projectId,
+            })),
+            ...memberActivityInputs,
+        ];
+
+        const [updated] = await prisma.$transaction([
+            prisma.project.update({
             where: { projectId },
             data,
             include: {
@@ -151,11 +228,13 @@ export const editProject= async (req: Request, res: Response): Promise<void> =>{
                     }
                 }
             }
-    });
+            }),
+            ...(activityInputs.length > 0 ? [prisma.activity.createMany({ data: activityInputs })] : []),
+        ]);
 
     res.json(updated);
   } catch (err: any) {
-    res.status(500).json({ message: `error updating project: ${err.message}` });
+    handleControllerError(err, res, "error updating project");
   }
 }
 //projects/:projectId
@@ -166,7 +245,9 @@ export const deleteProject= async (req: Request, res: Response): Promise<void> =
             res.status(400).json({ message: "Invalid project id" });
             return;
         }
-        const existingProject = await prisma.project.findUnique({ where: { projectId } });
+        const existingProject = await prisma.project.findFirst({
+            where: { projectId, ...projectMemberWhere(req.user!.userId) },
+        });
         if (!existingProject) {
             res.status(404).json({ message: "Project not found" });
             return;
@@ -174,12 +255,7 @@ export const deleteProject= async (req: Request, res: Response): Promise<void> =
         await prisma.project.delete({ where: { projectId } });
         res.json({ message: "Project deleted successfully" });
     } catch (err: any) {
-        if (err?.code === "P2003") {
-            res.status(409).json({
-            message: "Cannot delete project because it has related records (tickets, members, etc.)",
-        });
-        return;}    
-        res.status(500).json({ message: `error deleting project: ${err.message}` });
+        handleControllerError(err, res, "error deleting project");
      }
 }
 //projects/:projectId/tickets
@@ -190,7 +266,9 @@ export const getProjectTickets = async (req: Request, res: Response): Promise<vo
             res.status(400).json({ message: "Invalid project id" });
             return;
         }
-        const existingProject = await prisma.project.findUnique({ where: { projectId } });
+        const existingProject = await prisma.project.findFirst({
+            where: { projectId, teamMembers: { some: { userId: req.user!.userId } } },
+        });
         if (!existingProject) {
             res.status(404).json({ message: "Project not found" });
             return;
@@ -225,16 +303,16 @@ export const getProjectMembers= async (req: Request, res: Response): Promise<voi
             return;
         }
 
-        const project = await prisma.project.findUnique({
-            where: { projectId },
+        const project = await prisma.project.findFirst({
+            where: { projectId, teamMembers: { some: { userId: req.user!.userId } } },
             include: {
                 teamMembers: {
                     select: {
                         userId: true,
                         username: true,
                         email: true,
-                        profilePictureUrl: true, 
-                        role: true,           
+                        profilePictureUrl: true,
+                        role: true,
                     },
                 },
             },
@@ -271,19 +349,39 @@ export const addProjectMembers= async (req: Request, res: Response): Promise<voi
         }
         const existingProject = await prisma.project.findUnique({
             where: { projectId },
+            include: { teamMembers: { select: { userId: true } } },
         })
         if (!existingProject) {
             res.status(404).json({ message: "Project not found" });
             return;
         }
-        const updatedProject = await prisma.project.update({
+
+        const requestedIds = teamMembers.map((userId) => Number(userId));
+        const existingUsers = await prisma.user.findMany({
+            where: { userId: { in: requestedIds } },
+            select: { userId: true },
+        });
+        assertUsersExist(requestedIds, new Set(existingUsers.map((u) => u.userId)));
+
+        // Only log ids that aren't already members — connecting an existing
+        // member is a harmless no-op, not a real change.
+        const existingMemberIds = new Set(existingProject.teamMembers.map((m) => m.userId));
+        const activityInputs = requestedIds
+            .filter((userId) => !existingMemberIds.has(userId))
+            .map((userId) => ({
+                action: "MEMBER_ADDED" as const,
+                newValue: String(userId),
+                actorUserId: req.user!.userId,
+                projectId,
+            }));
+
+        const [updatedProject] = await prisma.$transaction([
+            prisma.project.update({
             where: { projectId },
             data: {
                 teamMembers: {
-                    connect: teamMembers.map((userId) => ({
-                        userId: Number(userId),
-                    })
-                )},
+                    connect: requestedIds.map((userId) => ({ userId })),
+                },
             },
             include: {
                 teamMembers:{
@@ -294,12 +392,12 @@ export const addProjectMembers= async (req: Request, res: Response): Promise<voi
                     }
                 }
             }
-        })
+            }),
+            ...(activityInputs.length > 0 ? [prisma.activity.createMany({ data: activityInputs })] : []),
+        ])
         res.status(200).json(updatedProject);
     } catch(err: any){
-        res.status(500).json({
-            message: `error adding project members: ${err.message}`,
-        })
+        handleControllerError(err, res, "error adding project members");
     }
 }
 //projects/:projectId/members/:userId
@@ -313,32 +411,83 @@ export const removeProjectMembers = async (req: Request, res: Response): Promise
         return
         }
 
-        const existingProject = await prisma.project.findUnique({ where: { projectId } })
+        const existingProject = await prisma.project.findUnique({
+        where: { projectId },
+        include: { teamMembers: { select: { userId: true } } },
+        })
         if (!existingProject) {
         res.status(404).json({ message: "Project not found" })
         return
         }
 
-        const updatedProject = await prisma.project.update({
-        where: { projectId },
-        data: {
-            teamMembers: {
-            disconnect: { userId },
+        const wasMember = existingProject.teamMembers.some((m) => m.userId === userId)
+        if (!wasMember) {
+        res.status(404).json({ message: "User is not a member of this project" })
+        return
+        }
+
+        assertNotLastProjectMember(existingProject.teamMembers.length)
+
+        const [updatedProject] = await prisma.$transaction([
+            prisma.project.update({
+            where: { projectId },
+            data: {
+                teamMembers: {
+                disconnect: { userId },
+                },
             },
-        },
-        include: {
-            teamMembers: {
-            select: {
-                userId: true,
-                username: true,
-                email: true,
+            include: {
+                teamMembers: {
+                select: {
+                    userId: true,
+                    username: true,
+                    email: true,
+                },
+                },
             },
-            },
-        },
-        })
+            }),
+            prisma.activity.create({
+                data: {
+                action: "MEMBER_REMOVED",
+                oldValue: String(userId),
+                actorUserId: req.user!.userId,
+                projectId,
+                },
+            }),
+        ])
 
         res.status(200).json(updatedProject)
     } catch (err: any) {
-        res.status(500).json({ message: `error removing project members: ${err.message}` })
+        handleControllerError(err, res, "error removing project members")
     }
 }
+//projects/:projectId/activity
+export const getProjectActivity = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const projectId = Number(req.params.projectId);
+        if (isNaN(projectId)) {
+            res.status(400).json({ message: "Invalid project id" });
+            return;
+        }
+
+        const project = await prisma.project.findFirst({
+            where: { projectId, teamMembers: { some: { userId: req.user!.userId } } },
+            select: { projectId: true },
+        });
+        if (!project) {
+            res.status(404).json({ message: "Project not found" });
+            return;
+        }
+
+        const activity = await prisma.activity.findMany({
+            where: { projectId },
+            include: {
+                actor: { select: { userId: true, username: true, email: true } },
+            },
+            orderBy: { createdAt: "desc" },
+        });
+        res.json(activity);
+    } catch (err: any) {
+        handleControllerError(err, res, "error fetching project activity");
+    }
+};

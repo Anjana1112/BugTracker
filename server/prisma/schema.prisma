@@ -35,11 +35,20 @@ enum TicketType {
     TASK
 }
 
+enum ActivityAction {
+    FIELD_CHANGED
+    ASSIGNEE_ADDED
+    ASSIGNEE_REMOVED
+    MEMBER_ADDED
+    MEMBER_REMOVED
+}
+
 model User {
     userId             Int                @id @default(autoincrement())
     cognitoId          String             @unique
     username           String             @unique
     email              String             @unique
+    password           String?
     profilePictureUrl  String?
     role               Role               @default(DEVELOPER)
 
@@ -47,6 +56,7 @@ model User {
     ticketAssignments  TicketAssignment[]
     comments           Comment[]
     projects           Project[]          @relation("ProjectMembers")
+    activities         Activity[]
 
     createdAt          DateTime           @default(now())
     updatedAt          DateTime           @updatedAt
@@ -61,6 +71,7 @@ model Project {
 
     tickets            Ticket[]
     teamMembers        User[]             @relation("ProjectMembers")
+    activities         Activity[]
 
     createdAt          DateTime           @default(now())
     updatedAt          DateTime           @updatedAt
@@ -86,6 +97,7 @@ model Ticket {
 
     ticketAssignments  TicketAssignment[]
     comments           Comment[]
+    activities         Activity[]
 
     @@index([projectId])
     @@index([authorUserId])
@@ -110,12 +122,53 @@ model Comment {
     text               String
     ticketId           Int
     userId             Int
-    attachmentURLs     String[]
     createdAt          DateTime           @default(now())
 
     ticket             Ticket             @relation(fields: [ticketId], references: [ticketId], onDelete: Cascade)
     author             User               @relation(fields: [userId], references: [userId])
+    attachments        CommentAttachment[]
 
     @@index([ticketId])
     @@index([userId])
+}
+
+model CommentAttachment {
+    attachmentId       Int                @id @default(autoincrement())
+    commentId          Int
+    url                String
+    originalFilename   String
+    mimeType           String
+    // Nullable: legacy/seed placeholder rows predate real uploads and have
+    // no genuine byte count. Every attachment created through the upload
+    // flow always supplies a real size.
+    size               Int?
+    createdAt          DateTime           @default(now())
+
+    comment            Comment            @relation(fields: [commentId], references: [commentId], onDelete: Cascade)
+
+    @@index([commentId])
+}
+
+model Activity {
+    activityId         Int                @id @default(autoincrement())
+    action             ActivityAction
+    // field is only set for FIELD_CHANGED rows (e.g. "status", "title");
+    // null for assignee/member add/remove rows.
+    field              String?
+    oldValue           String?
+    newValue           String?
+    actorUserId        Int
+    // Exactly one of ticketId/projectId is set — enforced in application
+    // code, not a DB constraint (no other model in this schema uses one).
+    ticketId           Int?
+    projectId          Int?
+    createdAt          DateTime           @default(now())
+
+    actor              User               @relation(fields: [actorUserId], references: [userId])
+    ticket             Ticket?            @relation(fields: [ticketId], references: [ticketId], onDelete: Cascade)
+    project            Project?           @relation(fields: [projectId], references: [projectId], onDelete: Cascade)
+
+    @@index([ticketId])
+    @@index([projectId])
+    @@index([actorUserId])
 }

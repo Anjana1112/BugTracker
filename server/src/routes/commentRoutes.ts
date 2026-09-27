@@ -4,7 +4,7 @@ import {
     createTicketComment,
     editTicketComment,
     deleteTicketComment,
-    addCommentAttachment
+    createAttachmentUploadUrl
 } from "../controllers/commentController.js"
 
 const router = Router({ mergeParams: true })
@@ -12,12 +12,10 @@ const router = Router({ mergeParams: true })
 // /tickets/:ticketId/comments
 router.get("/", getTicketComments)
 router.post("/", createTicketComment)
+router.post("/attachments/upload-url", createAttachmentUploadUrl)
 
 // /comments/:commentId
 router.patch("/:commentId", editTicketComment)
 router.delete("/:commentId", deleteTicketComment)
-
-// /comments/:commentId/attachments
-router.post("/:commentId/attachments", addCommentAttachment)
 
 export default router

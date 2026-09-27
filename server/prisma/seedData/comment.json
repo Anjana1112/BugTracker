@@ -4,174 +4,234 @@
     "ticketId": 1,
     "userId": 2,
     "createdAt": "2025-01-13T12:00:00Z",
-    "attachmentURLs": ["i1.jpg"]
+    "attachments": [
+      {
+        "url": "i1.jpg",
+        "originalFilename": "i1.jpg",
+        "mimeType": "image/jpeg"
+      }
+    ]
   },
   {
     "text": "Can we meet to discuss the navigation algorithm updates?",
     "ticketId": 2,
     "userId": 4,
     "createdAt": "2025-01-13T12:05:00Z",
-    "attachmentURLs": ["i2.jpg"]
+    "attachments": [
+      {
+        "url": "i2.jpg",
+        "originalFilename": "i2.jpg",
+        "mimeType": "image/jpeg"
+      }
+    ]
   },
   {
     "text": "This energy solution looks promising, but needs more research.",
     "ticketId": 3,
     "userId": 6,
     "createdAt": "2025-01-13T12:10:00Z",
-    "attachmentURLs": ["i3.jpg"]
+    "attachments": [
+      {
+        "url": "i3.jpg",
+        "originalFilename": "i3.jpg",
+        "mimeType": "image/jpeg"
+      }
+    ]
   },
   {
     "text": "Let's revise the software development workflow to include agile methodologies.",
     "ticketId": 4,
     "userId": 8,
     "createdAt": "2025-01-13T12:15:00Z",
-    "attachmentURLs": ["i4.jpg"]
+    "attachments": [
+      {
+        "url": "i4.jpg",
+        "originalFilename": "i4.jpg",
+        "mimeType": "image/jpeg"
+      }
+    ]
   },
   {
     "text": "We should consider newer AI models for better accuracy.",
     "ticketId": 5,
     "userId": 10,
     "createdAt": "2025-01-13T12:20:00Z",
-    "attachmentURLs": ["i5.jpg"]
+    "attachments": [
+      {
+        "url": "i5.jpg",
+        "originalFilename": "i5.jpg",
+        "mimeType": "image/jpeg"
+      }
+    ]
   },
   {
     "text": "Product testing needs to be more rigorous.",
     "ticketId": 6,
     "userId": 12,
     "createdAt": "2025-01-13T12:25:00Z",
-    "attachmentURLs": ["i6.jpg"]
+    "attachments": [
+      {
+        "url": "i6.jpg",
+        "originalFilename": "i6.jpg",
+        "mimeType": "image/jpeg"
+      }
+    ]
   },
   {
     "text": "Optimization algorithms are not yet efficient.",
     "ticketId": 7,
     "userId": 14,
     "createdAt": "2025-01-13T12:30:00Z",
-    "attachmentURLs": ["i7.jpg"]
+    "attachments": [
+      {
+        "url": "i7.jpg",
+        "originalFilename": "i7.jpg",
+        "mimeType": "image/jpeg"
+      }
+    ]
   },
   {
     "text": "Database overhaul could impact current operations negatively.",
     "ticketId": 8,
     "userId": 16,
     "createdAt": "2025-01-13T12:35:00Z",
-    "attachmentURLs": ["i8.jpg"]
+    "attachments": [
+      {
+        "url": "i8.jpg",
+        "originalFilename": "i8.jpg",
+        "mimeType": "image/jpeg"
+      }
+    ]
   },
   {
     "text": "Infrastructure upgrades must be done during low traffic hours.",
     "ticketId": 9,
     "userId": 18,
     "createdAt": "2025-01-13T12:40:00Z",
-    "attachmentURLs": ["i9.jpg"]
+    "attachments": [
+      {
+        "url": "i9.jpg",
+        "originalFilename": "i9.jpg",
+        "mimeType": "image/jpeg"
+      }
+    ]
   },
   {
     "text": "Security measures need to be enhanced to prevent data breaches.",
     "ticketId": 10,
     "userId": 20,
     "createdAt": "2025-01-13T12:45:00Z",
-    "attachmentURLs": ["i10.jpg"]
+    "attachments": [
+      {
+        "url": "i10.jpg",
+        "originalFilename": "i10.jpg",
+        "mimeType": "image/jpeg"
+      }
+    ]
   },
   {
     "text": "Consider using more robust training datasets for AI.",
     "ticketId": 11,
     "userId": 1,
     "createdAt": "2025-01-13T12:50:00Z",
-    "attachmentURLs": []
+    "attachments": []
   },
   {
     "text": "Server security update meeting scheduled for next week.",
     "ticketId": 12,
     "userId": 2,
     "createdAt": "2025-01-13T12:55:00Z",
-    "attachmentURLs": []
+    "attachments": []
   },
   {
     "text": "UX redesign has been well received in initial user tests.",
     "ticketId": 13,
     "userId": 3,
     "createdAt": "2025-01-13T13:00:00Z",
-    "attachmentURLs": []
+    "attachments": []
   },
   {
     "text": "Data analytics implementation needs to account for real-time processing delays.",
     "ticketId": 14,
     "userId": 4,
     "createdAt": "2025-01-13T13:05:00Z",
-    "attachmentURLs": []
+    "attachments": []
   },
   {
     "text": "Encryption project needs to align with international security standards.",
     "ticketId": 15,
     "userId": 5,
     "createdAt": "2025-01-13T13:10:00Z",
-    "attachmentURLs": []
+    "attachments": []
   },
   {
     "text": "Review cloud storage optimization strategies in Q3 meeting.",
     "ticketId": 16,
     "userId": 6,
     "createdAt": "2025-01-13T13:15:00Z",
-    "attachmentURLs": []
+    "attachments": []
   },
   {
     "text": "Hardware compatibility tests to include newer device models.",
     "ticketId": 17,
     "userId": 7,
     "createdAt": "2025-01-13T13:20:00Z",
-    "attachmentURLs": []
+    "attachments": []
   },
   {
     "text": "Visualization tools to support both 2D and 3D data representations.",
     "ticketId": 18,
     "userId": 8,
     "createdAt": "2025-01-13T13:25:00Z",
-    "attachmentURLs": []
+    "attachments": []
   },
   {
     "text": "IoT device prototypes to undergo extensive field testing.",
     "ticketId": 19,
     "userId": 9,
     "createdAt": "2025-01-13T13:30:00Z",
-    "attachmentURLs": []
+    "attachments": []
   },
   {
     "text": "Legacy system upgrade to start with backend databases.",
     "ticketId": 20,
     "userId": 10,
     "createdAt": "2025-01-13T13:35:00Z",
-    "attachmentURLs": []
+    "attachments": []
   },
   {
     "text": "Network security framework should prioritize threat detection improvements.",
     "ticketId": 21,
     "userId": 1,
     "createdAt": "2025-01-13T13:40:00Z",
-    "attachmentURLs": []
+    "attachments": []
   },
   {
     "text": "Application deployment strategies to include Docker integration.",
     "ticketId": 22,
     "userId": 2,
     "createdAt": "2025-01-13T13:45:00Z",
-    "attachmentURLs": []
+    "attachments": []
   },
   {
     "text": "Market analysis should cover competitive product landscapes.",
     "ticketId": 23,
     "userId": 3,
     "createdAt": "2025-01-13T13:50:00Z",
-    "attachmentURLs": []
+    "attachments": []
   },
   {
     "text": "Feedback mechanisms to utilize adaptive questioning techniques.",
     "ticketId": 24,
     "userId": 4,
     "createdAt": "2025-01-13T13:55:00Z",
-    "attachmentURLs": []
+    "attachments": []
   },
   {
     "text": "API integration must ensure data privacy compliance.",
     "ticketId": 25,
     "userId": 5,
     "createdAt": "2025-01-13T14:00:00Z",
-    "attachmentURLs": []
+    "attachments": []
   }
 ]
