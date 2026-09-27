@@ -85,8 +85,10 @@ export async function verifyUploadedObject(
 }
 
 // Best-effort: logs and swallows failures rather than blocking the caller,
-// since a DB write shouldn't fail because a storage cleanup call failed.
-export async function deleteAttachment(url: string): Promise<void> {
+// since a DB write shouldn't fail because a storage cleanup call failed. The
+// context string is only for the error log, so a failed delete can be
+// manually reconciled against R2 later — it plays no part in the delete itself.
+export async function deleteAttachment(url: string, context: string): Promise<void> {
     const key = keyFromUrl(url);
     if (!key) {
         return;
@@ -95,6 +97,6 @@ export async function deleteAttachment(url: string): Promise<void> {
     try {
         await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
     } catch (err) {
-        console.error(`Failed to delete attachment at ${url}:`, err);
+        console.error(`Failed to delete attachment (${context}, key ${key}):`, err);
     }
 }

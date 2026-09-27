@@ -19,6 +19,17 @@ describe("POST /api/login", () => {
         expect(res.body.user.password).toBeUndefined();
     });
 
+    it("logs in with an email that differs only by case", async () => {
+        const user = await createUser({ password: "correct-horse" });
+
+        const res = await request(app)
+            .post("/api/login")
+            .send({ email: user.email.toUpperCase(), password: user.plainPassword });
+
+        expect(res.status).toBe(200);
+        expect(res.body.user.email).toBe(user.email);
+    });
+
     it("rejects a wrong password", async () => {
         const user = await createUser({ password: "correct-horse" });
 

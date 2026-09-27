@@ -24,7 +24,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     try {
-        const user = await prisma.user.findUnique({ where: { email } });
+        // Emails are normalized to lowercase/trimmed on every write, so a
+        // plain equality lookup on the same normalization is case-insensitive.
+        const normalizedEmail = email.trim().toLowerCase();
+        const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
         // deletedAt is the authoritative "deactivated" marker (see
         // requireAuth) — checked explicitly here rather than relying on the

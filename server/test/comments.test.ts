@@ -392,12 +392,11 @@ describe("DELETE /comments/:commentId", () => {
         expect(res.status).toBe(400);
     });
 
-    // Documents current behavior only (not asserting it's correct — see the
-    // summary for the proposed fix, awaiting a decision before changing it):
-    // deleteAttachment() swallows S3 errors internally and never throws, so
-    // the comment is still deleted and the API still returns 204 even when
-    // the underlying object was never actually removed from R2.
-    it("[current behavior] still returns 204 and deletes the comment even if DeleteObjectCommand rejects", async () => {
+    // Deliberate: deleteAttachment() is best-effort and never throws, so a
+    // transient R2 failure can't block a user from deleting their own
+    // comment. The orphaned object is logged (key + comment id) for manual
+    // reconciliation rather than surfaced to the client.
+    it("still deletes the comment (best-effort attachment cleanup) even if DeleteObjectCommand rejects", async () => {
         const member = await createUser();
         const project = await createProject({}, [member.userId]);
         const ticket = await createTicket({ projectId: project.projectId, authorUserId: member.userId });

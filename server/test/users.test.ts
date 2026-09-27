@@ -151,6 +151,26 @@ describe("PATCH /users/:userId", () => {
         expect(res.status).toBe(409);
     });
 
+    it("rejects changing to an email that differs only by case from an existing user's", async () => {
+        const taken = await createUser();
+        const user = await createUser();
+        const res = await request(app)
+            .patch(`/users/${user.userId}`)
+            .set(authHeader(user))
+            .send({ email: taken.email.toUpperCase() });
+        expect(res.status).toBe(409);
+    });
+
+    it("normalizes a new email to lowercase", async () => {
+        const user = await createUser();
+        const res = await request(app)
+            .patch(`/users/${user.userId}`)
+            .set(authHeader(user))
+            .send({ email: "Mixed.Case@Example.com" });
+        expect(res.status).toBe(200);
+        expect(res.body.email).toBe("mixed.case@example.com");
+    });
+
     it("lets an admin demote themselves when another admin exists", async () => {
         await createUser({ role: "ADMIN" }); // a second admin, so the guard doesn't apply
         const admin = await createUser({ role: "ADMIN" });

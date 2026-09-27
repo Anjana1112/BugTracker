@@ -359,14 +359,16 @@ export const deleteTicket = async (req: Request, res: Response): Promise<void> =
         // URLs first so the actual stored objects get cleaned up too.
         const attachments = await prisma.commentAttachment.findMany({
             where: { comment: { ticketId } },
-            select: { url: true },
+            select: { url: true, commentId: true },
         });
 
         await prisma.ticket.delete({
             where: { ticketId: ticketId },
         })
 
-        await Promise.all(attachments.map((a) => deleteAttachment(a.url)));
+        await Promise.all(
+            attachments.map((a) => deleteAttachment(a.url, `comment ${a.commentId} (ticket ${ticketId} deleted)`))
+        );
 
         res.json({ message: "Ticket deleted successfully" });
     } catch (err: any) {

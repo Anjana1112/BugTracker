@@ -52,7 +52,7 @@ async function verifyAndBuildAttachments(
         try {
             assertAttachmentMeta(meta.contentType, meta.size);
         } catch (err) {
-            await deleteAttachment(url);
+            await deleteAttachment(url, `rejected upload for ticket ${ticketId}`);
             throw err;
         }
 
@@ -228,7 +228,7 @@ export const editTicketComment = async (req: Request, res: Response): Promise<vo
         if (verifiedAttachments) {
             const newUrls = new Set(verifiedAttachments.map((a) => a.url));
             const removed = existing.attachments.filter((a) => !newUrls.has(a.url));
-            await Promise.all(removed.map((a) => deleteAttachment(a.url)));
+            await Promise.all(removed.map((a) => deleteAttachment(a.url, `comment ${commentId}`)));
         }
 
         res.status(200).json(updated);
@@ -262,7 +262,7 @@ export const deleteTicketComment = async (req: Request, res: Response): Promise<
 
         await prisma.comment.delete({ where: { commentId } });
 
-        await Promise.all(existing.attachments.map((a) => deleteAttachment(a.url)));
+        await Promise.all(existing.attachments.map((a) => deleteAttachment(a.url, `comment ${commentId}`)));
 
         res.status(204).send();
     } catch (err: any) {

@@ -127,7 +127,7 @@ export const editUser = async (req: Request, res: Response): Promise<void> => {
         where: { userId },
         data: {
             ...(username !== undefined ? { username } : {}),
-            ...(email !== undefined ? { email } : {}),
+            ...(email !== undefined ? { email: email.trim().toLowerCase() } : {}),
             ...(profilePictureUrl !== undefined
             ? { profilePictureUrl: profilePictureUrl ?? null }
             : {}),
