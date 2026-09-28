@@ -474,6 +474,31 @@ describe("PATCH /tickets/:ticketId/status", () => {
         expect(res.status).toBe(200);
     });
 
+    it("lets each of two assignees change status", async () => {
+        const author = await createUser();
+        const assigneeA = await createUser();
+        const assigneeB = await createUser();
+        const project = await createProject({}, [author.userId, assigneeA.userId, assigneeB.userId]);
+        const ticket = await createTicket({
+            projectId: project.projectId,
+            authorUserId: author.userId,
+            status: "OPEN",
+            assigneeIds: [assigneeA.userId, assigneeB.userId],
+        });
+
+        const resA = await request(app)
+            .patch(`/tickets/${ticket.ticketId}/status`)
+            .set(authHeader(assigneeA))
+            .send({ status: "IN_PROGRESS" });
+        expect(resA.status).toBe(200);
+
+        const resB = await request(app)
+            .patch(`/tickets/${ticket.ticketId}/status`)
+            .set(authHeader(assigneeB))
+            .send({ status: "CLOSED" });
+        expect(resB.status).toBe(200);
+    });
+
     it("rejects a project member who is neither author, assignee, nor admin", async () => {
         const author = await createUser();
         const otherMember = await createUser();
