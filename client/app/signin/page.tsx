@@ -59,13 +59,19 @@ export default function SignInPage() {
             <Button type="submit" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => signIn("github")}
-            >
-              Sign in with GitHub
-            </Button>
+            {/* GitHub sign-in doesn't mint a backend JWT yet (see the
+                signIn callback in options.ts) — a "successful" GitHub
+                login would 401 on every API call. Hidden until that's
+                built; the provider itself stays configured. */}
+            {process.env.NEXT_PUBLIC_ENABLE_GITHUB_LOGIN === "true" && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => signIn("github")}
+              >
+                Sign in with GitHub
+              </Button>
+            )}
           </form>
         </CardContent>
       </Card>
