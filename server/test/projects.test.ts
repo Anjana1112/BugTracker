@@ -223,6 +223,22 @@ describe("GET /projects/:projectId/tickets", () => {
             .set(authHeader(outsider));
         expect(res.status).toBe(404);
     });
+
+    it("orders by createdAt descending (most recently created first)", async () => {
+        const member = await createUser();
+        const project = await createProject({}, [member.userId]);
+        const t1 = await createTicket({ projectId: project.projectId, authorUserId: member.userId });
+        const t2 = await createTicket({ projectId: project.projectId, authorUserId: member.userId });
+
+        await prisma.ticket.update({ where: { ticketId: t1.ticketId }, data: { createdAt: new Date("2020-01-01") } });
+        await prisma.ticket.update({ where: { ticketId: t2.ticketId }, data: { createdAt: new Date("2020-01-02") } });
+
+        const res = await request(app)
+            .get(`/projects/${project.projectId}/tickets`)
+            .set(authHeader(member));
+        expect(res.status).toBe(200);
+        expect(res.body.map((t: any) => t.ticketId)).toEqual([t2.ticketId, t1.ticketId]);
+    });
 });
 
 describe("GET /projects/:projectId/members", () => {

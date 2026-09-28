@@ -44,6 +44,9 @@ export const getTickets = async (req: Request, res: Response): Promise<void> =>{
                 },
                 comments: true,
             },
+            orderBy: {
+                createdAt: "desc",
+            },
         })
         res.json(tickets)
     }
