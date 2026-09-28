@@ -92,8 +92,8 @@ const ActionsCell = ({
     return null
   }
 
-  if (permission === "status") {
-    return (
+  return (
+    <div className="flex items-center gap-2">
       <Select
         value={ticket.status}
         onValueChange={(v) => handleStatusChange(v as TicketStatus)}
@@ -110,39 +110,43 @@ const ActionsCell = ({
           ))}
         </SelectContent>
       </Select>
-    )
-  }
 
-  return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="p0 h-8 w-8" disabled={isDeleting}>
-            <span className="sr-only">Open menu</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={() => setEditOpen(true)}>
-            Edit
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="text-destructive focus:text-destructive"
-            onSelect={handleDelete}
-            disabled={isDeleting}
-          >
-            {isDeleting ? "Deleting..." : "Delete"}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {permission === "full" && (
+        <>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="p0 h-8 w-8"
+                disabled={isDeleting}
+              >
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => setEditOpen(true)}>
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onSelect={handleDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-      <ModalEditTicket
-        isOpen={editOpen}
-        onClose={() => setEditOpen(false)}
-        onSuccess={onSuccess}
-        ticket={ticket}
-      />
-    </>
+          <ModalEditTicket
+            isOpen={editOpen}
+            onClose={() => setEditOpen(false)}
+            onSuccess={onSuccess}
+            ticket={ticket}
+          />
+        </>
+      )}
+    </div>
   )
 }
 

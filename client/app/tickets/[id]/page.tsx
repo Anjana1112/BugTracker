@@ -221,32 +221,34 @@ export default function TicketPage() {
         <div className="mt-4">
           <div className="flex items-center justify-between">
             <Header name="Overview" isSmallText />
-            {permission === "full" && (
-              <Button
-                className="bg-muted-foreground hover:cursor-pointer"
-                onClick={() => setIsModalEditTicketOpen(true)}
-              >
-                Edit Ticket
-              </Button>
-            )}
-            {permission === "status" && ticket && (
-              <Select
-                value={ticket.status}
-                onValueChange={(v) => handleStatusChange(v as TicketStatus)}
-                disabled={isUpdatingStatus}
-              >
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(TicketStatus).map((v) => (
-                    <SelectItem key={v} value={v}>
-                      {v}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+            <div className="flex items-center gap-2">
+              {permission !== "read" && ticket && (
+                <Select
+                  value={ticket.status}
+                  onValueChange={(v) => handleStatusChange(v as TicketStatus)}
+                  disabled={isUpdatingStatus}
+                >
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(TicketStatus).map((v) => (
+                      <SelectItem key={v} value={v}>
+                        {v}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {permission === "full" && (
+                <Button
+                  className="bg-muted-foreground hover:cursor-pointer"
+                  onClick={() => setIsModalEditTicketOpen(true)}
+                >
+                  Edit Ticket
+                </Button>
+              )}
+            </div>
           </div>
           {ticket && <TicketDetailsCard ticket={ticket} />}
           <ActivityFeed

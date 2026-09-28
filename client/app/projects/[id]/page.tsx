@@ -156,7 +156,12 @@ export default function ProjectPage() {
         canManageMembers,
         projectMembers.length
       ),
-    [handleRemoveProjectMember, project?.name, canManageMembers, projectMembers.length]
+    [
+      handleRemoveProjectMember,
+      project?.name,
+      canManageMembers,
+      projectMembers.length,
+    ]
   )
 
   const handleDeleteProjectTicket = async (ticketId: number) => {

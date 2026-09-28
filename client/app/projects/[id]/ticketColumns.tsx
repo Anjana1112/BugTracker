@@ -85,8 +85,8 @@ const ActionsCell = ({
     return null
   }
 
-  if (permission === "status") {
-    return (
+  return (
+    <div className="flex items-center gap-2">
       <Select
         value={ticket.status}
         onValueChange={(v) => handleStatusChange(v as TicketStatus)}
@@ -103,47 +103,47 @@ const ActionsCell = ({
           ))}
         </SelectContent>
       </Select>
-    )
-  }
 
-  return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Open menu</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={() => setEditOpen(true)}>
-            Edit
-          </DropdownMenuItem>
-          <ConfirmDeleteDialog
-            entityType="ticket"
-            name={ticket.title}
-            trigger={
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onSelect={(e) => e.preventDefault()}
-              >
-                Delete
+      {permission === "full" && (
+        <>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => setEditOpen(true)}>
+                Edit
               </DropdownMenuItem>
-            }
-            onConfirm={async () => {
-              await onDeleteTicket(ticket.ticketId)
-            }}
-          />
-        </DropdownMenuContent>
-      </DropdownMenu>
+              <ConfirmDeleteDialog
+                entityType="ticket"
+                name={ticket.title}
+                trigger={
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onSelect={(e) => e.preventDefault()}
+                  >
+                    Delete
+                  </DropdownMenuItem>
+                }
+                onConfirm={async () => {
+                  await onDeleteTicket(ticket.ticketId)
+                }}
+              />
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-      <ModalEditTicket
-        isOpen={editOpen}
-        onClose={() => setEditOpen(false)}
-        onSuccess={onSuccess}
-        ticket={ticket}
-      />
-    </>
+          <ModalEditTicket
+            isOpen={editOpen}
+            onClose={() => setEditOpen(false)}
+            onSuccess={onSuccess}
+            ticket={ticket}
+          />
+        </>
+      )}
+    </div>
   )
 }
 
