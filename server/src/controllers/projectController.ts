@@ -12,12 +12,22 @@ import {
 import { handleControllerError } from "../lib/errorHandler.js";
 import { diffFields, buildMemberActivityInputs } from "../lib/activity.js";
 import { projectMemberWhere } from "../lib/access.js";
+import { isAdmin } from "../middleware/requireAdmin.js";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) throw new Error("DATABASE_URL is missing");
 
 const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
+
+// Member-roster management is admin-only OR the project's own creator —
+// deliberately not scoped to project membership at all (see access.ts):
+// an admin who isn't a member, or a creator who removed themself, must
+// still be able to manage the roster.
+async function isProjectCreatorOrAdmin(createdByUserId: number | null, req: Request): Promise<boolean> {
+    if (createdByUserId !== null && req.user!.userId === createdByUserId) return true;
+    return isAdmin(req.user!.userId);
+}
 
 //projects
 export const getProjects = async (req: Request, res: Response): Promise<void> =>{
@@ -94,6 +104,7 @@ export const createProject= async (req: Request, res: Response): Promise<void> =
             description: description || null,
             startDate: parsedStartDate,
             endDate: parsedEndDate,
+            createdByUserId: req.user!.userId,
             teamMembers: {
                 connect: Array.from(memberIds).map((userId) => ({ userId })),
             },
@@ -356,6 +367,11 @@ export const addProjectMembers= async (req: Request, res: Response): Promise<voi
             return;
         }
 
+        if (!(await isProjectCreatorOrAdmin(existingProject.createdByUserId, req))) {
+            res.status(403).json({ message: "Only the project's creator or an admin can add members" });
+            return;
+        }
+
         const requestedIds = teamMembers.map((userId) => Number(userId));
         const existingUsers = await prisma.user.findMany({
             where: { userId: { in: requestedIds } },
@@ -417,6 +433,11 @@ export const removeProjectMembers = async (req: Request, res: Response): Promise
         })
         if (!existingProject) {
         res.status(404).json({ message: "Project not found" })
+        return
+        }
+
+        if (!(await isProjectCreatorOrAdmin(existingProject.createdByUserId, req))) {
+        res.status(403).json({ message: "Only the project's creator or an admin can remove members" })
         return
         }
 

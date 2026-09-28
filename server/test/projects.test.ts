@@ -66,6 +66,7 @@ describe("POST /projects", () => {
             .send({ name: "New Project" });
         expect(res.status).toBe(201);
         expect(res.body.teamMembers.some((m: any) => m.userId === user.userId)).toBe(true);
+        expect(res.body.createdByUserId).toBe(user.userId);
     });
 
     it("rejects an empty name", async () => {
@@ -308,10 +309,23 @@ describe("POST /projects/:projectId/members", () => {
         expect(activity[0]?.newValue).toBe(String(newMember.userId));
     });
 
-    it("rejects a non-admin", async () => {
+    it("lets the project's creator (a non-admin) add a member", async () => {
+        const creator = await createUser();
+        const newMember = await createUser();
+        const project = await createProject({ createdByUserId: creator.userId }, [creator.userId]);
+        const res = await request(app)
+            .post(`/projects/${project.projectId}/members`)
+            .set(authHeader(creator))
+            .send({ teamMembers: [newMember.userId] });
+        expect(res.status).toBe(200);
+        expect(res.body.teamMembers.some((m: any) => m.userId === newMember.userId)).toBe(true);
+    });
+
+    it("rejects a non-admin who is not the project's creator", async () => {
+        const creator = await createUser();
         const user = await createUser();
         const newMember = await createUser();
-        const project = await createProject({}, [user.userId]);
+        const project = await createProject({ createdByUserId: creator.userId }, [creator.userId, user.userId]);
         const res = await request(app)
             .post(`/projects/${project.projectId}/members`)
             .set(authHeader(user))
@@ -417,10 +431,25 @@ describe("DELETE /projects/:projectId/members/:userId", () => {
         expect(activity[0]?.oldValue).toBe(String(member.userId));
     });
 
-    it("rejects a non-admin", async () => {
+    it("lets the project's creator (a non-admin) remove a member", async () => {
+        const creator = await createUser();
+        const member = await createUser();
+        const project = await createProject({ createdByUserId: creator.userId }, [creator.userId, member.userId]);
+        const res = await request(app)
+            .delete(`/projects/${project.projectId}/members/${member.userId}`)
+            .set(authHeader(creator));
+        expect(res.status).toBe(200);
+        expect(res.body.teamMembers.some((m: any) => m.userId === member.userId)).toBe(false);
+    });
+
+    it("rejects a non-admin who is not the project's creator", async () => {
+        const creator = await createUser();
         const user = await createUser();
         const member = await createUser();
-        const project = await createProject({}, [user.userId, member.userId]);
+        const project = await createProject(
+            { createdByUserId: creator.userId },
+            [creator.userId, user.userId, member.userId]
+        );
         const res = await request(app)
             .delete(`/projects/${project.projectId}/members/${member.userId}`)
             .set(authHeader(user));

@@ -44,6 +44,7 @@ export async function createProject(
         description: string | null;
         startDate: Date | null;
         endDate: Date | null;
+        createdByUserId: number | null;
     }> = {},
     memberIds: number[] = []
 ) {
@@ -54,6 +55,11 @@ export async function createProject(
             description: overrides.description ?? null,
             startDate: overrides.startDate ?? null,
             endDate: overrides.endDate ?? null,
+            // No default creator — tests that care about creator-only
+            // permissions must pass createdByUserId explicitly, and every
+            // other test is unaffected (a null creator behaves exactly like
+            // the old admin-only-gated behavior).
+            createdByUserId: overrides.createdByUserId ?? null,
             ...(memberIds.length > 0 && {
                 teamMembers: { connect: memberIds.map((userId) => ({ userId })) },
             }),

@@ -62,6 +62,7 @@ model User {
     ticketAssignments  TicketAssignment[]
     comments           Comment[]
     projects           Project[]          @relation("ProjectMembers")
+    createdProjects    Project[]          @relation("ProjectCreator")
     activities         Activity[]
 
     createdAt          DateTime           @default(now())
@@ -74,9 +75,16 @@ model Project {
     description        String?
     startDate          DateTime?
     endDate            DateTime?
+    // Nullable: projects created before this column existed have no known
+    // creator (see the backfill migration). Set automatically by
+    // POST /projects; SetNull rather than Restrict so hard-deleting the
+    // creator's account doesn't block it — this is informational, unlike
+    // Ticket.author/Comment.author which guard against orphaning content.
+    createdByUserId    Int?
 
     tickets            Ticket[]
     teamMembers        User[]             @relation("ProjectMembers")
+    creator            User?              @relation("ProjectCreator", fields: [createdByUserId], references: [userId], onDelete: SetNull)
     activities         Activity[]
 
     createdAt          DateTime           @default(now())
