@@ -182,6 +182,10 @@ describe("POST /tickets/:ticketId/comments/attachments/upload-url", () => {
         expect(res.status).toBe(200);
         expect(res.body.uploadUrl).toEqual(expect.any(String));
         expect(res.body.publicUrl).toEqual(expect.any(String));
+        // A signed flexible-checksum (of an empty body, since presigning never
+        // sees the real upload) would make R2 reject the browser's actual PUT.
+        expect(res.body.uploadUrl).not.toMatch(/x-amz-checksum-/i);
+        expect(res.body.uploadUrl).not.toMatch(/x-amz-sdk-checksum-algorithm/i);
     });
 
     it("rejects a disallowed MIME type", async () => {

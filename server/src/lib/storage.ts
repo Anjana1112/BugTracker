@@ -20,10 +20,17 @@ if (!accountId || !accessKeyId || !secretAccessKey || !bucket || !publicUrlBase)
     );
 }
 
+// Newer @aws-sdk/client-s3 versions add a flexible-checksum (CRC32) to every
+// signed request by default. R2 isn't S3 and rejects it on presigned PUT
+// URLs (the checksum gets signed against an empty body, which never matches
+// what the browser actually uploads) — opt back into classic behavior:
+// only compute/require a checksum when a command explicitly asks for one.
 const s3 = new S3Client({
     region: "auto",
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
     credentials: { accessKeyId, secretAccessKey },
+    requestChecksumCalculation: "WHEN_REQUIRED",
+    responseChecksumValidation: "WHEN_REQUIRED",
 });
 
 const ATTACHMENT_PREFIX = "attachments";
