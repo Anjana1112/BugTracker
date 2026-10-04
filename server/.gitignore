@@ -3,4 +3,7 @@ node_modules
 .env
 .env.test
 
-/generated/prisma
+/src/generated/prisma
+
+# Build output
+/dist

@@ -9,7 +9,10 @@ export default defineConfig({
     path: "prisma/migrations",
     seed: "tsx prisma/seed.ts",
   },
+  // Only the Prisma CLI (migrate, studio, ...) reads this; the app connects via
+  // the pg adapter with DATABASE_URL. Prefer Neon's direct (non-pooler) URL for
+  // migrations, since the pooler doesn't support the session features they need.
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
   },
 });

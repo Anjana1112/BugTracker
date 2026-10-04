@@ -19,7 +19,11 @@ const app = express();
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({policy: "cross-origin"}))
 app.use(morgan("common"))
-app.use(cors());
+// In production only CLIENT_ORIGIN (the deployed frontend) may call the API.
+// Unset in development falls back to the local Next.js dev server.
+const isProduction = process.env.NODE_ENV === "production";
+const corsOrigin = process.env.CLIENT_ORIGIN ?? (isProduction ? false : "http://localhost:3000");
+app.use(cors({ origin: corsOrigin }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -39,8 +43,10 @@ app.use((err: any, req: any, res: any, next: any) => {
   console.error("Server error:", err);
   console.error(err?.stack);
 
+  // Don't leak internal/Prisma error details to clients in production; the
+  // full error is still logged above.
   res.status(500).json({
-    message: err?.message ?? "Internal Server Error",
+    message: isProduction ? "Internal server error" : err?.message ?? "Internal Server Error",
   });
 });
 

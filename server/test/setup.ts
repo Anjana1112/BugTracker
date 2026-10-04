@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { beforeEach, afterAll } from "vitest";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../generated/prisma/client.js";
+import { PrismaClient } from "../src/generated/prisma/client.js";
 import { resetS3Mock } from "./s3Mock.js";
 
 const __filename = fileURLToPath(import.meta.url);

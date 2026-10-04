@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import "dotenv/config";
 import jwt from "jsonwebtoken";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../../generated/prisma/client.js";
+import { PrismaClient } from "../generated/prisma/client.js";
 
 const jwtSecret = process.env.JWT_SECRET;
 if (!jwtSecret) throw new Error("JWT_SECRET is missing");

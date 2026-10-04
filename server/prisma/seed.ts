@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 import bcrypt from "bcryptjs";
 
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../generated/prisma/client.js";
+import { PrismaClient } from "../src/generated/prisma/client.js";
 
 // Plaintext for every seeded user's login
 const SEED_PASSWORD = "password123";
