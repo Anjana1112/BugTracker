@@ -17,6 +17,10 @@ dotenv.config({ path: path.resolve(__dirname, ".env.test"), override: true });
 // intentionally slow) — set here via config, not by editing the cost
 // hardcoded in production logic. Only takes effect if not already set.
 process.env.BCRYPT_COST = process.env.BCRYPT_COST ?? "4";
+// Lift the per-IP auth rate limit for the suite — every request comes from
+// the same IP, so the production default would 429 unrelated login tests.
+// register.test.ts covers the limiter itself with an explicit small limit.
+process.env.AUTH_RATE_LIMIT_MAX = process.env.AUTH_RATE_LIMIT_MAX ?? "10000";
 
 export default defineConfig({
   test: {

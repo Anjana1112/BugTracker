@@ -11,7 +11,7 @@ const DashboardWrapper = ({ children }: { children: React.ReactNode }) => {
   const { status } = useSession()
   const pathname = usePathname()
   const router = useRouter()
-  const isAuthRoute = pathname === "/signin"
+  const isAuthRoute = pathname === "/signin" || pathname === "/signup"
 
   useEffect(() => {
     if (!isAuthRoute && status === "unauthenticated") {

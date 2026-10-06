@@ -4,7 +4,7 @@ import Modal from "@/components/ui/modal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import React, { useEffect, useState } from "react"
-import { Role, editUser, type User } from "@/lib/api"
+import { ApiError, Role, editUser, type User } from "@/lib/api"
 import {
   Select,
   SelectContent,
@@ -49,6 +49,9 @@ const ModalEditUser = ({ isOpen, onClose, user, onSuccess }: Props) => {
       onSuccess?.()
     } catch (error) {
       console.error("Failed to update user:", error)
+      toast.error(
+        error instanceof ApiError ? error.message : "Failed to update user."
+      )
     } finally {
       setIsLoading(false)
     }

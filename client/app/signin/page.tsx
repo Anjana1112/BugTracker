@@ -1,12 +1,15 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { DEMO_ACCOUNTS, DEMO_PASSWORD } from "@/lib/demoAccounts"
 
 export default function SignInPage() {
   const router = useRouter()
@@ -73,6 +76,47 @@ export default function SignInPage() {
               </Button>
             )}
           </form>
+          <p className="mt-4 text-center text-sm text-muted-foreground">
+            Don&apos;t have an account?{" "}
+            <Link
+              href="/signup"
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              Sign up
+            </Link>
+          </p>
+          <Separator className="my-5" />
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-medium">Try a demo account</p>
+            <p className="text-xs text-muted-foreground">
+              Password for all demo accounts:{" "}
+              <code className="rounded bg-muted px-1 py-0.5 font-mono">
+                {DEMO_PASSWORD}
+              </code>
+            </p>
+            {DEMO_ACCOUNTS.map((account) => (
+              <Button
+                key={account.email}
+                type="button"
+                variant="outline"
+                className="h-auto justify-between py-2"
+                onClick={() => {
+                  setEmail(account.email)
+                  setPassword(DEMO_PASSWORD)
+                }}
+              >
+                <span className="flex flex-col items-start">
+                  <span className="text-sm">{account.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {account.email}
+                  </span>
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {account.label}
+                </span>
+              </Button>
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>

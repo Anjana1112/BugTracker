@@ -16,6 +16,11 @@ import { requireAuth } from './middleware/auth.js'
 //config
 dotenv.config();
 const app = express();
+// Behind Render's proxy, req.ip (used by the auth rate limiter) is only the
+// real client IP when Express trusts X-Forwarded-For. TRUST_PROXY sets the
+// number of proxy hops; defaults to 1 in production, off otherwise.
+const trustProxyHops = Number(process.env.TRUST_PROXY ?? (process.env.NODE_ENV === "production" ? 1 : 0));
+if (trustProxyHops > 0) app.set("trust proxy", trustProxyHops);
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({policy: "cross-origin"}))
 app.use(morgan("common"))

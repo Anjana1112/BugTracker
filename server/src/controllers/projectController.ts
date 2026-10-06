@@ -13,6 +13,7 @@ import { handleControllerError } from "../lib/errorHandler.js";
 import { diffFields, buildMemberActivityInputs } from "../lib/activity.js";
 import { projectMemberWhere } from "../lib/access.js";
 import { isAdmin } from "../middleware/requireAdmin.js";
+import { DEMO_MODE_MESSAGE, isDemoUser } from "../middleware/demoMode.js";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) throw new Error("DATABASE_URL is missing");
@@ -27,6 +28,15 @@ const prisma = new PrismaClient({ adapter });
 async function isProjectCreatorOrAdmin(createdByUserId: number | null, req: Request): Promise<boolean> {
     if (createdByUserId !== null && req.user!.userId === createdByUserId) return true;
     return isAdmin(req.user!.userId);
+}
+
+// Roster management is the one place admin/creator rights reach beyond
+// membership (above). Demo logins don't get that reach: they may only manage
+// projects they're already a member of — otherwise the demo admin could add
+// itself to any real project and gain full access to it.
+function demoUserIsMember(teamMembers: { userId: number }[], req: Request): boolean {
+    if (!isDemoUser(req)) return true;
+    return teamMembers.some((member) => member.userId === req.user!.userId);
 }
 
 //projects
@@ -367,6 +377,11 @@ export const addProjectMembers= async (req: Request, res: Response): Promise<voi
             return;
         }
 
+        if (!demoUserIsMember(existingProject.teamMembers, req)) {
+            res.status(403).json({ message: DEMO_MODE_MESSAGE });
+            return;
+        }
+
         if (!(await isProjectCreatorOrAdmin(existingProject.createdByUserId, req))) {
             res.status(403).json({ message: "Only the project's creator or an admin can add members" });
             return;
@@ -433,6 +448,11 @@ export const removeProjectMembers = async (req: Request, res: Response): Promise
         })
         if (!existingProject) {
         res.status(404).json({ message: "Project not found" })
+        return
+        }
+
+        if (!demoUserIsMember(existingProject.teamMembers, req)) {
+        res.status(403).json({ message: DEMO_MODE_MESSAGE })
         return
         }
 

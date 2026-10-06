@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { SortableHeader } from "@/components/features/general/dataTable"
 import ModalEditUser from "@/components/features/users/modalEditUser"
-import { removeUser, type User } from "@/lib/api"
+import { ApiError, removeUser, type User } from "@/lib/api"
+import { toast } from "sonner"
 
 export type UserRow = User
 
@@ -35,6 +36,9 @@ const ActionsCell = ({
       onSuccess()
     } catch (error) {
       console.error("Failed to delete user:", error)
+      toast.error(
+        error instanceof ApiError ? error.message : "Failed to delete user."
+      )
     } finally {
       setIsDeleting(false)
     }

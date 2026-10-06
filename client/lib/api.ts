@@ -210,6 +210,18 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
 }
 
 // Projects
+export interface RegisterPayload {
+  username: string
+  email: string
+  password: string
+}
+
+export const register = (data: RegisterPayload) =>
+  request<{ token: string; user: User }>("/api/register", {
+    method: "POST",
+    body: JSON.stringify(data),
+  })
+
 export const getProjects = () => request<Project[]>("/projects")
 
 export const getProject = (projectId: number) =>

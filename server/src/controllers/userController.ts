@@ -7,6 +7,7 @@ import { isAdmin } from "../middleware/requireAdmin.js"
 import { assertMinLength } from "../lib/validation.js"
 import { handleControllerError } from "../lib/errorHandler.js"
 import { BCRYPT_COST } from "../lib/config.js"
+import { DEMO_MODE_MESSAGE, isDemoUser } from "../middleware/demoMode.js"
 
 const connectionString = process.env.DATABASE_URL
 if (!connectionString) throw new Error("DATABASE_URL is missing")
@@ -71,6 +72,12 @@ export const editUser = async (req: Request, res: Response): Promise<void> => {
         return
         }
 
+        // Demo logins can only edit their own profile (admin or not).
+        if (isDemoUser(req) && req.user!.userId !== userId) {
+        res.status(403).json({ message: DEMO_MODE_MESSAGE })
+        return
+        }
+
         const requesterIsAdmin = await isAdmin(req.user!.userId)
 
         if (req.user!.userId !== userId && !requesterIsAdmin) {
@@ -101,6 +108,19 @@ export const editUser = async (req: Request, res: Response): Promise<void> => {
 
         if (!existingUser) {
         res.status(404).json({ message: "User not found" })
+        return
+        }
+
+        // Demo logins may still edit usernames/avatars, but never change a
+        // role, or an email (their own, or — as the demo admin — anyone
+        // else's, which would lock that user out of their login). Compared
+        // against the stored values because the client's forms always send
+        // email (and role) even when only the username was edited.
+        const changesEmail =
+        email !== undefined && email.trim().toLowerCase() !== existingUser.email
+        const changesRole = role !== undefined && role !== existingUser.role
+        if (isDemoUser(req) && (changesEmail || changesRole)) {
+        res.status(403).json({ message: DEMO_MODE_MESSAGE })
         return
         }
 
